@@ -35,6 +35,9 @@ ENV/
 # PyCharm settings
 .idea/
 
+# Environment variables
+.env
+
 # S3-related files
 *.s3cfg
 
