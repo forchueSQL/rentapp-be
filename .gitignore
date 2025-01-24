@@ -50,3 +50,6 @@ tags
 # macOS-specific files
 .DS_Store
 .aider*
+
+
+.idea
