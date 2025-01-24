@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'corsheaders',
     # Your custom apps
     'rentapp',  # Replace with your app name
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
