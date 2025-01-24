@@ -1,0 +1,48 @@
+# Git Ignore for a Django project
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+dist/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+
+# Media and static files
+/media
+/static
+
+# Virtual environment
+venv/
+ENV/
+
+# VSCode settings
+.vscode/
+
+# PyCharm settings
+.idea/
+
+# S3-related files
+*.s3cfg
+
+# Backup files
+tags
+*.bak
+*.swp
+*.swo
+
+# macOS-specific files
+.DS_Store
