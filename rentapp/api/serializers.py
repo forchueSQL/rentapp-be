@@ -1,15 +1,7 @@
 from rest_framework import serializers
-from .models import Apartment, Tenant, Lease, User, Property, PropertyPhoto, Inquiry, PropertyStatus
+from .models import  User, Property, PropertyPhoto, Inquiry, PropertyStatus
 
-class TenantSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Tenant
-        fields = '__all__'
 
-class LeaseSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Lease
-        fields = '__all__'
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -36,7 +28,3 @@ class PropertyStatusSerializer(serializers.ModelSerializer):
         model = PropertyStatus
         fields = '__all__'
 
-class ApartmentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Apartment
-        fields = '__all__'
