@@ -4,7 +4,7 @@ from .views import (
     PropertyList, PropertyDetail,
     PropertyPhotoList, PropertyPhotoDetail,
     InquiryList, InquiryDetail,
-    PropertyStatusList, PropertyStatusDetail
+    PropertyStatusList, PropertyStatusDetail, UploadPhotoView
 )
 
 urlpatterns = [
@@ -27,4 +27,6 @@ urlpatterns = [
     # Property Status endpoints
     path('property-status/', PropertyStatusList.as_view(), name='propertystatus-list'),
     path('property-status/<int:pk>/', PropertyStatusDetail.as_view(), name='propertystatus-detail'),
+    path('upload-photo/', UploadPhotoView.as_view(), name='upload-photo'),
+
 ]

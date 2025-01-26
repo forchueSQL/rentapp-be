@@ -2,7 +2,6 @@ from rest_framework import serializers
 from .models import  User, Property, PropertyPhoto, Inquiry, PropertyStatus
 
 
-
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
