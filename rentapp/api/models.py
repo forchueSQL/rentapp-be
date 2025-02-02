@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MinLengthValidator
 
 class User(models.Model):
     ROLE_CHOICES = [
@@ -70,3 +71,24 @@ class PropertyStatus(models.Model):
 
     def __str__(self):
         return f"{self.property.title}: {self.status}"
+
+class Like(models.Model):
+    property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='likes')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='likes')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('property', 'user')
+
+    def __str__(self):
+        return f"{self.user.username} likes {self.property.title}"
+
+class Comment(models.Model):
+    property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='comments')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
+    content = models.TextField(validators=[MinLengthValidator(1)])
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Comment by {self.user.username} on {self.property.title}"
