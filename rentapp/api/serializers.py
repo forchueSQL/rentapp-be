@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import  User, Property, PropertyPhoto, Inquiry, PropertyStatus
+from .models import  User, Property, PropertyPhoto, Inquiry, PropertyStatus, Like, Comment
 
 
 class UserSerializer(serializers.ModelSerializer):
