@@ -1,45 +1,52 @@
-from django.db import models
-from django.core.validators import MinLengthValidator
+from app import db
+from datetime import datetime
+from sqlalchemy import Enum
 
-class User(models.Model):
-    ROLE_CHOICES = [
-        ('admin', 'Admin'),
-        ('broker', 'Broker'),
-        ('customer', 'Customer'),
-    ]
+class User(db.Model):
+    ROLE_CHOICES = ('admin', 'broker', 'customer')
+    
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    password_hash = db.Column(db.Text, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    phone_number = db.Column(db.String(15), nullable=True)
+    role = db.Column(Enum(*ROLE_CHOICES, name='user_roles'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    username = models.CharField(max_length=50, unique=True)
-    password_hash = models.TextField()
-    email = models.EmailField(unique=True)
-    phone_number = models.CharField(max_length=15, blank=True, null=True)
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
-    created_at = models.DateTimeField(auto_now_add=True)
+    properties = db.relationship('Property', backref='broker', lazy=True)
+    likes = db.relationship('Like', backref='user', lazy=True)
+    comments = db.relationship('Comment', backref='user', lazy=True)
+    inquiries = db.relationship('Inquiry', backref='customer', lazy=True)
 
-    def __str__(self):
-        return self.username
+    def __repr__(self):
+        return f'<User {self.username}>'
 
-class Property(models.Model):
-    PROPERTY_TYPE_CHOICES = [
-        ('apartment', 'Apartment'),
-        ('house', 'House'),
-    ]
+class Property(db.Model):
+    PROPERTY_TYPE_CHOICES = ('apartment', 'house')
+    
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    price = db.Column(db.Numeric(10, 2), nullable=False)
+    address = db.Column(db.String(255), nullable=False)
+    city = db.Column(db.String(100), nullable=False)
+    state = db.Column(db.String(100), nullable=False)
+    zip_code = db.Column(db.String(10), nullable=False)
+    property_type = db.Column(Enum(*PROPERTY_TYPE_CHOICES, name='property_types'), nullable=False)
+    bedrooms = db.Column(db.Integer, nullable=False)
+    bathrooms = db.Column(db.Integer, nullable=False)
+    square_feet = db.Column(db.Integer, nullable=True)
+    broker_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    title = models.CharField(max_length=100)
-    description = models.TextField(blank=True, null=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    address = models.CharField(max_length=255)
-    city = models.CharField(max_length=100)
-    state = models.CharField(max_length=100)
-    zip_code = models.CharField(max_length=10)
-    property_type = models.CharField(max_length=50, choices=PROPERTY_TYPE_CHOICES)
-    bedrooms = models.IntegerField()
-    bathrooms = models.IntegerField()
-    square_feet = models.IntegerField(blank=True, null=True)
-    broker = models.ForeignKey(User, on_delete=models.CASCADE, related_name='properties')
-    created_at = models.DateTimeField(auto_now_add=True)
+    photos = db.relationship('PropertyPhoto', backref='property', lazy=True)
+    inquiries = db.relationship('Inquiry', backref='property', lazy=True)
+    statuses = db.relationship('PropertyStatus', backref='property', lazy=True)
+    likes = db.relationship('Like', backref='property', lazy=True)
+    comments = db.relationship('Comment', backref='property', lazy=True)
 
-    def __str__(self):
-        return self.title
+    def __repr__(self):
+        return f'<Property {self.title}>'
 
 class PropertyPhoto(models.Model):
     property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='photos')
