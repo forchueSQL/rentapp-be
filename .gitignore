@@ -69,3 +69,10 @@ yarn-error.log*
 
 /rentapp/node_modules
 node_modules
+
+*.pyc
+
+instance/
+.pytest_cache/
+.coverage
+htmlcov/
