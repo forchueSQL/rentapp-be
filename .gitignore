@@ -53,3 +53,19 @@ tags
 
 
 .idea
+
+
+/tmp
+/out-tsc
+
+/node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+/.pnp
+.pnp.js
+
+.vscode/*
+
+/rentapp/node_modules
+node_modules
