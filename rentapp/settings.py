@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     # Your custom apps
-    'rentapp',  # Replace with your app name
+    'rentapp',
+    'rentapp.api',
     'drf_yasg',
 ]
 
