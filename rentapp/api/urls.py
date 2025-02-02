@@ -28,5 +28,12 @@ urlpatterns = [
     path('property-status/', PropertyStatusList.as_view(), name='propertystatus-list'),
     path('property-status/<int:pk>/', PropertyStatusDetail.as_view(), name='propertystatus-detail'),
     path('upload-photo/', UploadPhotoView.as_view(), name='upload-photo'),
-
+    
+    # Like endpoints
+    path('likes/', LikeList.as_view(), name='like-list'),
+    path('likes/<int:pk>/', LikeDetail.as_view(), name='like-detail'),
+    
+    # Comment endpoints
+    path('comments/', CommentList.as_view(), name='comment-list'),
+    path('comments/<int:pk>/', CommentDetail.as_view(), name='comment-detail'),
 ]

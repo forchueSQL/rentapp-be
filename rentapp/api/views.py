@@ -88,3 +88,29 @@ class PropertyStatusDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = PropertyStatus.objects.all()
     serializer_class = PropertyStatusSerializer
 
+class LikeList(generics.ListCreateAPIView):
+    queryset = Like.objects.all()
+    serializer_class = LikeSerializer
+
+    def perform_create(self, serializer):
+        property_id = self.request.data.get('property')
+        user = self.request.user
+        if Like.objects.filter(property_id=property_id, user=user).exists():
+            raise serializers.ValidationError("You have already liked this property.")
+        serializer.save(user=user)
+
+class LikeDetail(generics.RetrieveDestroyAPIView):
+    queryset = Like.objects.all()
+    serializer_class = LikeSerializer
+
+class CommentList(generics.ListCreateAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+

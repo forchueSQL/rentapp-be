@@ -27,3 +27,17 @@ class PropertyStatusSerializer(serializers.ModelSerializer):
         model = PropertyStatus
         fields = '__all__'
 
+class LikeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Like
+        fields = '__all__'
+        read_only_fields = ('created_at',)
+
+class CommentSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)
+    
+    class Meta:
+        model = Comment
+        fields = '__all__'
+        read_only_fields = ('created_at', 'updated_at')
+
