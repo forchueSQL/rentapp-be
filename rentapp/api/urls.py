@@ -4,7 +4,8 @@ from .views import (
     PropertyList, PropertyDetail,
     PropertyPhotoList, PropertyPhotoDetail,
     InquiryList, InquiryDetail,
-    PropertyStatusList, PropertyStatusDetail, UploadPhotoView
+    PropertyStatusList, PropertyStatusDetail, UploadPhotoView,
+    LikeList, LikeDetail, CommentList, CommentDetail
 )
 
 urlpatterns = [

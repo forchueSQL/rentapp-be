@@ -1,6 +1,9 @@
-from rest_framework import generics
-from .models import  User, Property, PropertyPhoto, Inquiry, PropertyStatus
-from .serializers import UserSerializer, PropertySerializer, PropertyPhotoSerializer, InquirySerializer, PropertyStatusSerializer
+from rest_framework import generics, serializers
+from .models import User, Property, PropertyPhoto, Inquiry, PropertyStatus, Like, Comment
+from .serializers import (
+    UserSerializer, PropertySerializer, PropertyPhotoSerializer, 
+    InquirySerializer, PropertyStatusSerializer, LikeSerializer, CommentSerializer
+)
 import boto3
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError, BotoCoreError, ClientError
 from rest_framework.views import APIView
