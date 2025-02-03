@@ -21,10 +21,18 @@ property_model = api.model('Property', {
     'city': fields.String(required=True, description='City'),
     'state': fields.String(required=True, description='State'),
     'zip_code': fields.String(required=True, description='ZIP code'),
-    'property_type': fields.String(required=True, description='Type of property'),
+    'property_type': fields.String(required=True, description='Type of property', enum=['apartment', 'house']),
     'bedrooms': fields.Integer(required=True, description='Number of bedrooms'),
     'bathrooms': fields.Integer(required=True, description='Number of bathrooms'),
     'square_feet': fields.Integer(description='Square footage')
+})
+
+property_status_model = api.model('PropertyStatus', {
+    'status': fields.String(required=True, description='Property status', enum=['available', 'rented', 'pending'])
+})
+
+property_photo_model = api.model('PropertyPhoto', {
+    'photo_url': fields.String(required=True, description='URL of the property photo')
 })
 
 inquiry_model = api.model('Inquiry', {
@@ -201,6 +209,86 @@ class PropertyLikes(Resource):
         db.session.add(like)
         db.session.commit()
         return LikeSchema().dump(like), 201
+
+@api.route('/properties/<int:property_id>/status')
+class PropertyStatus(Resource):
+    @api.doc('get_property_status')
+    @api.response(200, 'Success')
+    def get(self, property_id):
+        """Get property status"""
+        status = PropertyStatus.query.filter_by(property_id=property_id).first()
+        return PropertyStatusSchema().dump(status)
+
+    @api.doc('update_property_status')
+    @api.expect(property_status_model)
+    @api.response(200, 'Status updated')
+    @token_required
+    @role_required(['broker', 'admin'])
+    def put(self, current_user, property_id):
+        """Update property status (Broker/Admin only)"""
+        property = Property.query.get_or_404(property_id)
+        if property.broker_id != current_user.id and current_user.role != 'admin':
+            return {'message': 'Unauthorized'}, 403
+            
+        data = request.get_json()
+        status = PropertyStatus.query.filter_by(property_id=property_id).first()
+        if not status:
+            status = PropertyStatus(property_id=property_id)
+            db.session.add(status)
+        
+        status.status = data['status']
+        db.session.commit()
+        return PropertyStatusSchema().dump(status)
+
+@api.route('/properties/<int:property_id>/photos')
+class PropertyPhotos(Resource):
+    @api.doc('get_property_photos')
+    @api.response(200, 'Success')
+    def get(self, property_id):
+        """Get all photos for a property"""
+        photos = PropertyPhoto.query.filter_by(property_id=property_id).all()
+        return PropertyPhotoSchema(many=True).dump(photos)
+
+    @api.doc('add_property_photo')
+    @api.expect(property_photo_model)
+    @api.response(201, 'Photo added')
+    @token_required
+    @role_required(['broker', 'admin'])
+    def post(self, current_user, property_id):
+        """Add a photo to a property (Broker/Admin only)"""
+        property = Property.query.get_or_404(property_id)
+        if property.broker_id != current_user.id and current_user.role != 'admin':
+            return {'message': 'Unauthorized'}, 403
+            
+        data = request.get_json()
+        photo = PropertyPhoto(
+            property_id=property_id,
+            photo_url=data['photo_url']
+        )
+        db.session.add(photo)
+        db.session.commit()
+        return PropertyPhotoSchema().dump(photo), 201
+
+@api.route('/properties/<int:property_id>/photos/<int:photo_id>')
+class PropertyPhotoResource(Resource):
+    @api.doc('delete_property_photo')
+    @api.response(204, 'Photo deleted')
+    @api.response(404, 'Photo not found')
+    @token_required
+    @role_required(['broker', 'admin'])
+    def delete(self, current_user, property_id, photo_id):
+        """Delete a property photo (Broker/Admin only)"""
+        property = Property.query.get_or_404(property_id)
+        if property.broker_id != current_user.id and current_user.role != 'admin':
+            return {'message': 'Unauthorized'}, 403
+            
+        photo = PropertyPhoto.query.get_or_404(photo_id)
+        if photo.property_id != property_id:
+            return {'message': 'Photo not found'}, 404
+            
+        db.session.delete(photo)
+        db.session.commit()
+        return '', 204
 
 @api.route('/properties/<int:property_id>/comments')
 class PropertyComments(Resource):
