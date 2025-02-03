@@ -76,6 +76,76 @@ class Properties(Resource):
         db.session.commit()
         return PropertySchema().dump(property), 201
 
+@api.route('/properties/<int:property_id>')
+class PropertyResource(Resource):
+    @api.doc('get_property')
+    @api.response(200, 'Success')
+    @api.response(404, 'Property not found')
+    def get(self, property_id):
+        """Get a specific property"""
+        property = Property.query.get_or_404(property_id)
+        return PropertySchema().dump(property)
+
+    @api.doc('update_property')
+    @api.expect(property_model)
+    @api.response(200, 'Property updated')
+    @api.response(404, 'Property not found')
+    @token_required
+    @role_required(['broker', 'admin'])
+    def put(self, current_user, property_id):
+        """Update a property (Broker/Admin only)"""
+        property = Property.query.get_or_404(property_id)
+        if property.broker_id != current_user.id and current_user.role != 'admin':
+            return {'message': 'Unauthorized'}, 403
+            
+        data = request.get_json()
+        for key, value in data.items():
+            setattr(property, key, value)
+        
+        db.session.commit()
+        return PropertySchema().dump(property)
+
+    @api.doc('delete_property')
+    @api.response(204, 'Property deleted')
+    @api.response(404, 'Property not found')
+    @token_required
+    @role_required(['broker', 'admin'])
+    def delete(self, current_user, property_id):
+        """Delete a property (Broker/Admin only)"""
+        property = Property.query.get_or_404(property_id)
+        if property.broker_id != current_user.id and current_user.role != 'admin':
+            return {'message': 'Unauthorized'}, 403
+            
+        db.session.delete(property)
+        db.session.commit()
+        return '', 204
+
+    @api.doc('create_property')
+    @api.expect(property_model)
+    @api.response(201, 'Property created')
+    @token_required
+    @role_required(['broker', 'admin'])
+    def post(self, current_user):
+        """Create a new property (Broker/Admin only)"""
+        data = request.get_json()
+        property = Property(
+            title=data['title'],
+            description=data.get('description'),
+            price=data['price'],
+            address=data['address'],
+            city=data['city'],
+            state=data['state'],
+            zip_code=data['zip_code'],
+            property_type=data['property_type'],
+            bedrooms=data['bedrooms'],
+            bathrooms=data['bathrooms'],
+            square_feet=data.get('square_feet'),
+            broker_id=current_user.id
+        )
+        db.session.add(property)
+        db.session.commit()
+        return PropertySchema().dump(property), 201
+
 @api.route('/properties/<int:property_id>/inquiries')
 class PropertyInquiries(Resource):
     @api.doc('get_property_inquiries')
