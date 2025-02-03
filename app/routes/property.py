@@ -17,17 +17,20 @@ api = Api(property_bp,
 
 # API Models for documentation
 property_model = api.model('Property', {
-    'title': fields.String(required=True, description='Property title'),
-    'description': fields.String(description='Property description'),
-    'price': fields.Float(required=True, description='Property price'),
-    'address': fields.String(required=True, description='Property address'),
-    'city': fields.String(required=True, description='City'),
-    'state': fields.String(required=True, description='State'),
-    'zip_code': fields.String(required=True, description='ZIP code'),
-    'property_type': fields.String(required=True, description='Type of property', enum=['apartment', 'house']),
-    'bedrooms': fields.Integer(required=True, description='Number of bedrooms'),
-    'bathrooms': fields.Integer(required=True, description='Number of bathrooms'),
-    'square_feet': fields.Integer(description='Square footage')
+    'id': fields.Integer(readonly=True, description='Property ID', example=1),
+    'title': fields.String(required=True, description='Property title', example='Beautiful 3-bedroom apartment'),
+    'description': fields.String(description='Property description', example='Spacious apartment in the city center'),
+    'price': fields.Float(required=True, description='Property price', example=1500.0),
+    'address': fields.String(required=True, description='Property address', example='123 Main St'),
+    'city': fields.String(required=True, description='City', example='New York'),
+    'state': fields.String(required=True, description='State', example='NY'),
+    'zip_code': fields.String(required=True, description='ZIP code', example='10001'),
+    'property_type': fields.String(required=True, description='Type of property', enum=['apartment', 'house'], example='apartment'),
+    'bedrooms': fields.Integer(required=True, description='Number of bedrooms', example=3),
+    'bathrooms': fields.Integer(required=True, description='Number of bathrooms', example=2),
+    'square_feet': fields.Integer(description='Square footage', example=1200),
+    'broker_id': fields.Integer(required=True, description='Broker ID', example=1),
+    'created_at': fields.DateTime(readonly=True, description='Creation date', example='2025-01-01T00:00:00Z')
 })
 
 property_status_model = api.model('PropertyStatus', {
