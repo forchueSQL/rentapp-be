@@ -8,7 +8,7 @@ from app.schemas.schemas import (
 )
 from app.routes.auth import token_required, role_required
 
-property_bp = Blueprint('property', __name__)
+property_bp = Blueprint('property', __name__, url_prefix='/api')
 api = Api(property_bp,
     title='Property API',
     version='1.0',

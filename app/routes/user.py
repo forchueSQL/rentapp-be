@@ -5,7 +5,7 @@ from app.models.models import User
 from app.schemas.schemas import UserSchema
 from app.routes.auth import token_required, role_required
 
-user_bp = Blueprint('user', __name__)
+user_bp = Blueprint('user', __name__, url_prefix='/api')
 api = Api(user_bp,
     title='User API',
     version='1.0',
