@@ -35,6 +35,8 @@ ENV/
 # PyCharm settings
 .idea/
 
+.help
+
 # Environment variables
 .env
 
@@ -76,3 +78,4 @@ instance/
 .pytest_cache/
 .coverage
 htmlcov/
+.env
