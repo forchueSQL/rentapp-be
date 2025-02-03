@@ -1,6 +1,6 @@
 from flask import Blueprint, request
-from flask_restx import Api, Resource, fields
-from app import db
+from flask_restx import Resource, fields
+from app import db, api
 from app.models.models import Property, PropertyPhoto, PropertyStatus, Inquiry, Like, Comment
 from app.schemas.schemas import (
     PropertySchema, PropertyPhotoSchema, PropertyStatusSchema,
@@ -9,14 +9,13 @@ from app.schemas.schemas import (
 from app.routes.auth import token_required, role_required
 
 property_bp = Blueprint('property', __name__, url_prefix='/api')
-api = Api(property_bp,
-    title='Property API',
-    version='1.0',
+property_ns = api.namespace(
+    'property',
     description='Property management endpoints for RentApp'
 )
 
 # API Models for documentation
-property_model = api.model('Property', {
+property_model = property_ns.model('Property', {
     'id': fields.Integer(readonly=True, description='Property ID', example=1),
     'title': fields.String(required=True, description='Property title', example='Beautiful 3-bedroom apartment'),
     'description': fields.String(description='Property description', example='Spacious apartment in the city center'),
@@ -33,40 +32,40 @@ property_model = api.model('Property', {
     'created_at': fields.DateTime(readonly=True, description='Creation date', example='2025-01-01T00:00:00Z')
 })
 
-property_status_model = api.model('PropertyStatus', {
+property_status_model = property_ns.model('PropertyStatus', {
     'status': fields.String(required=True, description='Property status', enum=['available', 'rented', 'pending'])
 })
 
-property_photo_model = api.model('PropertyPhoto', {
+property_photo_model = property_ns.model('PropertyPhoto', {
     'photo_url': fields.String(required=True, description='URL of the property photo')
 })
 
-inquiry_model = api.model('Inquiry', {
+inquiry_model = property_ns.model('Inquiry', {
     'customer_id': fields.Integer(required=True, description='Customer ID'),
     'message': fields.String(required=True, description='Inquiry message')
 })
 
-like_model = api.model('Like', {
+like_model = property_ns.model('Like', {
     'user_id': fields.Integer(required=True, description='User ID')
 })
 
-comment_model = api.model('Comment', {
+comment_model = property_ns.model('Comment', {
     'user_id': fields.Integer(required=True, description='User ID'),
     'content': fields.String(required=True, description='Comment content')
 })
 
-@api.route('/properties', endpoint='properties')
+@property_ns.route('/properties')
 class Properties(Resource):
-    @api.doc('list_properties')
-    @api.response(200, 'Success')
+    @property_ns.doc('list_properties')
+    @property_ns.response(200, 'Success')
     def get(self):
         """List all properties"""
         properties = Property.query.all()
         return PropertySchema(many=True).dump(properties)
 
-    @api.doc('create_property')
-    @api.expect(property_model)
-    @api.response(201, 'Property created')
+    @property_ns.doc('create_property')
+    @property_ns.expect(property_model)
+    @property_ns.response(201, 'Property created')
     @token_required
     @role_required(['broker', 'admin'])
     def post(self, current_user):
@@ -90,20 +89,20 @@ class Properties(Resource):
         db.session.commit()
         return PropertySchema().dump(property), 201
 
-@api.route('/properties/<int:property_id>', endpoint='property_resource')
+@property_ns.route('/properties/<int:property_id>')
 class PropertyResource(Resource):
-    @api.doc('get_property')
-    @api.response(200, 'Success')
-    @api.response(404, 'Property not found')
+    @property_ns.doc('get_property')
+    @property_ns.response(200, 'Success')
+    @property_ns.response(404, 'Property not found')
     def get(self, property_id):
         """Get a specific property"""
         property = Property.query.get_or_404(property_id)
         return PropertySchema().dump(property)
 
-    @api.doc('update_property')
-    @api.expect(property_model)
-    @api.response(200, 'Property updated')
-    @api.response(404, 'Property not found')
+    @property_ns.doc('update_property')
+    @property_ns.expect(property_model)
+    @property_ns.response(200, 'Property updated')
+    @property_ns.response(404, 'Property not found')
     @token_required
     @role_required(['broker', 'admin'])
     def put(self, current_user, property_id):
@@ -119,9 +118,9 @@ class PropertyResource(Resource):
         db.session.commit()
         return PropertySchema().dump(property)
 
-    @api.doc('delete_property')
-    @api.response(204, 'Property deleted')
-    @api.response(404, 'Property not found')
+    @property_ns.doc('delete_property')
+    @property_ns.response(204, 'Property deleted')
+    @property_ns.response(404, 'Property not found')
     @token_required
     @role_required(['broker', 'admin'])
     def delete(self, current_user, property_id):
@@ -134,44 +133,18 @@ class PropertyResource(Resource):
         db.session.commit()
         return '', 204
 
-    @api.doc('create_property')
-    @api.expect(property_model)
-    @api.response(201, 'Property created')
-    @token_required
-    @role_required(['broker', 'admin'])
-    def post(self, current_user):
-        """Create a new property (Broker/Admin only)"""
-        data = request.get_json()
-        property = Property(
-            title=data['title'],
-            description=data.get('description'),
-            price=data['price'],
-            address=data['address'],
-            city=data['city'],
-            state=data['state'],
-            zip_code=data['zip_code'],
-            property_type=data['property_type'],
-            bedrooms=data['bedrooms'],
-            bathrooms=data['bathrooms'],
-            square_feet=data.get('square_feet'),
-            broker_id=current_user.id
-        )
-        db.session.add(property)
-        db.session.commit()
-        return PropertySchema().dump(property), 201
-
-@api.route('/properties/<int:property_id>/inquiries', endpoint='property_inquiries')
+@property_ns.route('/properties/<int:property_id>/inquiries')
 class PropertyInquiries(Resource):
-    @api.doc('get_property_inquiries')
-    @api.response(200, 'Success')
+    @property_ns.doc('get_property_inquiries')
+    @property_ns.response(200, 'Success')
     def get(self, property_id):
         """Get all inquiries for a property"""
         inquiries = Inquiry.query.filter_by(property_id=property_id).all()
         return InquirySchema(many=True).dump(inquiries)
 
-    @api.doc('create_property_inquiry')
-    @api.expect(inquiry_model)
-    @api.response(201, 'Inquiry created')
+    @property_ns.doc('create_property_inquiry')
+    @property_ns.expect(inquiry_model)
+    @property_ns.response(201, 'Inquiry created')
     def post(self, property_id):
         """Create a new inquiry for a property (Customer only)"""
         data = request.get_json()
@@ -184,19 +157,19 @@ class PropertyInquiries(Resource):
         db.session.commit()
         return InquirySchema().dump(inquiry), 201
 
-@api.route('/properties/<int:property_id>/likes', endpoint='property_likes')
+@property_ns.route('/properties/<int:property_id>/likes')
 class PropertyLikes(Resource):
-    @api.doc('get_property_likes')
-    @api.response(200, 'Success')
+    @property_ns.doc('get_property_likes')
+    @property_ns.response(200, 'Success')
     def get(self, property_id):
         """Get all likes for a property"""
         likes = Like.query.filter_by(property_id=property_id).all()
         return LikeSchema(many=True).dump(likes)
 
-    @api.doc('create_property_like')
-    @api.expect(like_model)
-    @api.response(201, 'Like created')
-    @api.response(400, 'Already liked')
+    @property_ns.doc('create_property_like')
+    @property_ns.expect(like_model)
+    @property_ns.response(201, 'Like created')
+    @property_ns.response(400, 'Already liked')
     def post(self, property_id):
         """Add a like to a property"""
         data = request.get_json()
@@ -206,7 +179,7 @@ class PropertyLikes(Resource):
         ).first()
         
         if existing_like:
-            api.abort(400, "User has already liked this property")
+            property_ns.abort(400, "User has already liked this property")
             
         like = Like(
             property_id=property_id,
@@ -216,18 +189,18 @@ class PropertyLikes(Resource):
         db.session.commit()
         return LikeSchema().dump(like), 201
 
-@api.route('/properties/<int:property_id>/status', endpoint='property_status')
+@property_ns.route('/properties/<int:property_id>/status')
 class PropertyStatus(Resource):
-    @api.doc('get_property_status')
-    @api.response(200, 'Success')
+    @property_ns.doc('get_property_status')
+    @property_ns.response(200, 'Success')
     def get(self, property_id):
         """Get property status"""
         status = PropertyStatus.query.filter_by(property_id=property_id).first()
         return PropertyStatusSchema().dump(status)
 
-    @api.doc('update_property_status')
-    @api.expect(property_status_model)
-    @api.response(200, 'Status updated')
+    @property_ns.doc('update_property_status')
+    @property_ns.expect(property_status_model)
+    @property_ns.response(200, 'Status updated')
     @token_required
     @role_required(['broker', 'admin'])
     def put(self, current_user, property_id):
@@ -246,18 +219,18 @@ class PropertyStatus(Resource):
         db.session.commit()
         return PropertyStatusSchema().dump(status)
 
-@api.route('/properties/<int:property_id>/photos', endpoint='property_photos')
+@property_ns.route('/properties/<int:property_id>/photos')
 class PropertyPhotos(Resource):
-    @api.doc('get_property_photos')
-    @api.response(200, 'Success')
+    @property_ns.doc('get_property_photos')
+    @property_ns.response(200, 'Success')
     def get(self, property_id):
         """Get all photos for a property"""
         photos = PropertyPhoto.query.filter_by(property_id=property_id).all()
         return PropertyPhotoSchema(many=True).dump(photos)
 
-    @api.doc('add_property_photo')
-    @api.expect(property_photo_model)
-    @api.response(201, 'Photo added')
+    @property_ns.doc('add_property_photo')
+    @property_ns.expect(property_photo_model)
+    @property_ns.response(201, 'Photo added')
     @token_required
     @role_required(['broker', 'admin'])
     def post(self, current_user, property_id):
@@ -275,11 +248,11 @@ class PropertyPhotos(Resource):
         db.session.commit()
         return PropertyPhotoSchema().dump(photo), 201
 
-@api.route('/properties/<int:property_id>/photos/<int:photo_id>', endpoint='property_photo_resource')
+@property_ns.route('/properties/<int:property_id>/photos/<int:photo_id>')
 class PropertyPhotoResource(Resource):
-    @api.doc('delete_property_photo')
-    @api.response(204, 'Photo deleted')
-    @api.response(404, 'Photo not found')
+    @property_ns.doc('delete_property_photo')
+    @property_ns.response(204, 'Photo deleted')
+    @property_ns.response(404, 'Photo not found')
     @token_required
     @role_required(['broker', 'admin'])
     def delete(self, current_user, property_id, photo_id):
@@ -296,18 +269,18 @@ class PropertyPhotoResource(Resource):
         db.session.commit()
         return '', 204
 
-@api.route('/properties/<int:property_id>/comments', endpoint='property_comments')
+@property_ns.route('/properties/<int:property_id>/comments')
 class PropertyComments(Resource):
-    @api.doc('get_property_comments')
-    @api.response(200, 'Success')
+    @property_ns.doc('get_property_comments')
+    @property_ns.response(200, 'Success')
     def get(self, property_id):
         """Get all comments for a property"""
         comments = Comment.query.filter_by(property_id=property_id).all()
         return CommentSchema(many=True).dump(comments)
 
-    @api.doc('create_property_comment')
-    @api.expect(comment_model)
-    @api.response(201, 'Comment created')
+    @property_ns.doc('create_property_comment')
+    @property_ns.expect(comment_model)
+    @property_ns.response(201, 'Comment created')
     def post(self, property_id):
         """Add a comment to a property"""
         data = request.get_json()

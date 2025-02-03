@@ -1,19 +1,18 @@
 from flask import Blueprint, request
-from flask_restx import Api, Resource, fields
-from app import db
+from flask_restx import Resource, fields
+from app import db, api
 from app.models.models import User
 from app.schemas.schemas import UserSchema
 from app.routes.auth import token_required, role_required
 
 user_bp = Blueprint('user', __name__, url_prefix='/api')
-api = Api(user_bp,
-    title='User API',
-    version='1.0',
+user_ns = api.namespace(
+    'user',
     description='User management endpoints for RentApp'
 )
 
 # API Models for documentation
-user_model = api.model('User', {
+user_model = user_ns.model('User', {
     'id': fields.Integer(description='User ID', readonly=True, example=1),
     'username': fields.String(required=True, description='Username (3-50 characters)', min_length=3, max_length=50, example='john_doe'),
     'email': fields.String(required=True, description='Email address', pattern=r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', example='john@example.com'),
@@ -22,21 +21,21 @@ user_model = api.model('User', {
     'created_at': fields.DateTime(description='Account creation date', readonly=True, example='2025-01-01T00:00:00Z')
 })
 
-error_model = api.model('Error', {
+error_model = user_ns.model('Error', {
     'message': fields.String(description='Error message', example='An error occurred')
 })
 
-success_model = api.model('Success', {
+success_model = user_ns.model('Success', {
     'message': fields.String(description='Success message', example='Operation successful')
 })
 
-user_list_model = api.model('UserList', {
+user_list_model = user_ns.model('UserList', {
     'users': fields.List(fields.Nested(user_model))
 })
 
-@api.route('/users', endpoint='users')
+@user_ns.route('/users')
 class Users(Resource):
-    @api.doc('list_users',
+    @user_ns.doc('list_users',
              description='List all users (Admin only)',
              security='Bearer Auth',
              responses={
@@ -49,7 +48,7 @@ class Users(Resource):
         users = User.query.all()
         return UserSchema(many=True, exclude=['password_hash']).dump(users)
 
-    @api.doc('create_user',
+    @user_ns.doc('create_user',
              description='Create a new user account (Admin only)',
              security='Bearer Auth',
              responses={
@@ -58,7 +57,7 @@ class Users(Resource):
                  403: ('Forbidden - Admin access required', error_model),
                  409: ('Conflict - email/username already exists', error_model)
              })
-    @api.expect(user_model)
+    @user_ns.expect(user_model)
     @token_required
     @role_required(['admin'])
     def post(self, current_user):
@@ -71,11 +70,11 @@ class Users(Resource):
         db.session.commit()
         return UserSchema(exclude=['password_hash']).dump(user), 201
 
-@api.route('/users/<int:user_id>', endpoint='user_resource')
+@user_ns.route('/users/<int:user_id>')
 class UserResource(Resource):
-    @api.doc('get_user')
-    @api.response(200, 'Success')
-    @api.response(404, 'User not found')
+    @user_ns.doc('get_user')
+    @user_ns.response(200, 'Success')
+    @user_ns.response(404, 'User not found')
     @token_required
     def get(self, current_user, user_id):
         """Get a specific user"""
@@ -84,10 +83,10 @@ class UserResource(Resource):
         user = User.query.get_or_404(user_id)
         return UserSchema(exclude=['password_hash']).dump(user)
 
-    @api.doc('update_user')
-    @api.expect(user_model)
-    @api.response(200, 'User updated')
-    @api.response(404, 'User not found')
+    @user_ns.doc('update_user')
+    @user_ns.expect(user_model)
+    @user_ns.response(200, 'User updated')
+    @user_ns.response(404, 'User not found')
     @token_required
     def put(self, current_user, user_id):
         """Update a user"""
@@ -103,9 +102,9 @@ class UserResource(Resource):
         db.session.commit()
         return UserSchema(exclude=['password_hash']).dump(user)
 
-    @api.doc('delete_user')
-    @api.response(204, 'User deleted')
-    @api.response(404, 'User not found')
+    @user_ns.doc('delete_user')
+    @user_ns.response(204, 'User deleted')
+    @user_ns.response(404, 'User not found')
     @token_required
     @role_required(['admin'])
     def delete(self, current_user, user_id):
