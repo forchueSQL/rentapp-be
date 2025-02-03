@@ -55,7 +55,7 @@ comment_model = api.model('Comment', {
     'content': fields.String(required=True, description='Comment content')
 })
 
-@api.route('/properties')
+@api.route('/properties', endpoint='properties')
 class Properties(Resource):
     @api.doc('list_properties')
     @api.response(200, 'Success')
@@ -90,7 +90,7 @@ class Properties(Resource):
         db.session.commit()
         return PropertySchema().dump(property), 201
 
-@api.route('/properties/<int:property_id>')
+@api.route('/properties/<int:property_id>', endpoint='property_resource')
 class PropertyResource(Resource):
     @api.doc('get_property')
     @api.response(200, 'Success')
@@ -160,7 +160,7 @@ class PropertyResource(Resource):
         db.session.commit()
         return PropertySchema().dump(property), 201
 
-@api.route('/properties/<int:property_id>/inquiries')
+@api.route('/properties/<int:property_id>/inquiries', endpoint='property_inquiries')
 class PropertyInquiries(Resource):
     @api.doc('get_property_inquiries')
     @api.response(200, 'Success')
@@ -184,7 +184,7 @@ class PropertyInquiries(Resource):
         db.session.commit()
         return InquirySchema().dump(inquiry), 201
 
-@api.route('/properties/<int:property_id>/likes')
+@api.route('/properties/<int:property_id>/likes', endpoint='property_likes')
 class PropertyLikes(Resource):
     @api.doc('get_property_likes')
     @api.response(200, 'Success')
@@ -216,7 +216,7 @@ class PropertyLikes(Resource):
         db.session.commit()
         return LikeSchema().dump(like), 201
 
-@api.route('/properties/<int:property_id>/status')
+@api.route('/properties/<int:property_id>/status', endpoint='property_status')
 class PropertyStatus(Resource):
     @api.doc('get_property_status')
     @api.response(200, 'Success')
@@ -246,7 +246,7 @@ class PropertyStatus(Resource):
         db.session.commit()
         return PropertyStatusSchema().dump(status)
 
-@api.route('/properties/<int:property_id>/photos')
+@api.route('/properties/<int:property_id>/photos', endpoint='property_photos')
 class PropertyPhotos(Resource):
     @api.doc('get_property_photos')
     @api.response(200, 'Success')
@@ -275,7 +275,7 @@ class PropertyPhotos(Resource):
         db.session.commit()
         return PropertyPhotoSchema().dump(photo), 201
 
-@api.route('/properties/<int:property_id>/photos/<int:photo_id>')
+@api.route('/properties/<int:property_id>/photos/<int:photo_id>', endpoint='property_photo_resource')
 class PropertyPhotoResource(Resource):
     @api.doc('delete_property_photo')
     @api.response(204, 'Photo deleted')
@@ -296,7 +296,7 @@ class PropertyPhotoResource(Resource):
         db.session.commit()
         return '', 204
 
-@api.route('/properties/<int:property_id>/comments')
+@api.route('/properties/<int:property_id>/comments', endpoint='property_comments')
 class PropertyComments(Resource):
     @api.doc('get_property_comments')
     @api.response(200, 'Success')

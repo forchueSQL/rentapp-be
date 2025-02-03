@@ -34,7 +34,7 @@ user_list_model = api.model('UserList', {
     'users': fields.List(fields.Nested(user_model))
 })
 
-@api.route('/users')
+@api.route('/users', endpoint='users')
 class Users(Resource):
     @api.doc('list_users',
              description='List all users (Admin only)',
@@ -71,7 +71,7 @@ class Users(Resource):
         db.session.commit()
         return UserSchema(exclude=['password_hash']).dump(user), 201
 
-@api.route('/users/<int:user_id>')
+@api.route('/users/<int:user_id>', endpoint='user_resource')
 class UserResource(Resource):
     @api.doc('get_user')
     @api.response(200, 'Success')
