@@ -43,24 +43,37 @@ api = Api(auth_bp,
 
 # API Models for documentation
 register_model = api.model('Register', {
-    'username': fields.String(required=True, description='Username'),
-    'email': fields.String(required=True, description='Email address'),
-    'password': fields.String(required=True, description='Password'),
-    'phone_number': fields.String(required=False, description='Phone number'),
-    'role': fields.String(required=True, description='User role (admin, broker, customer)')
+    'username': fields.String(required=True, description='Username (3-50 characters)', min_length=3, max_length=50),
+    'email': fields.String(required=True, description='Valid email address', pattern=r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'),
+    'password': fields.String(required=True, description='Password (minimum 6 characters)', min_length=6),
+    'phone_number': fields.String(required=False, description='Phone number (digits only, max 15)', max_length=15),
+    'role': fields.String(required=True, description='User role', enum=['admin', 'broker', 'customer'])
 })
 
 login_model = api.model('Login', {
-    'email': fields.String(required=True, description='Email address'),
-    'password': fields.String(required=True, description='Password')
+    'email': fields.String(required=True, description='Registered email address'),
+    'password': fields.String(required=True, description='Account password')
+})
+
+token_response_model = api.model('TokenResponse', {
+    'token': fields.String(description='JWT access token'),
+    'user': fields.Nested(user_model)
+})
+
+error_model = api.model('Error', {
+    'message': fields.String(description='Error message')
 })
 
 @api.route('/register')
 class Register(Resource):
-    @api.doc('register_user')
+    @api.doc('register_user',
+             description='Register a new user account',
+             responses={
+                 201: ('User created', user_model),
+                 400: ('Validation error', error_model),
+                 409: ('Conflict - email/username already exists', error_model)
+             })
     @api.expect(register_model)
-    @api.response(201, 'User successfully created')
-    @api.response(400, 'Validation error')
     def post(self):
         """Register a new user"""
         data = request.get_json()
@@ -86,10 +99,13 @@ class Register(Resource):
 
 @api.route('/login')
 class Login(Resource):
-    @api.doc('login_user')
+    @api.doc('login_user',
+             description='Authenticate user and receive access token',
+             responses={
+                 200: ('Login successful', token_response_model),
+                 401: ('Invalid credentials', error_model)
+             })
     @api.expect(login_model)
-    @api.response(200, 'Login successful')
-    @api.response(401, 'Invalid credentials')
     def post(self):
         """Login and receive authentication token"""
         data = request.get_json()
