@@ -80,8 +80,7 @@ class Properties(Resource):
 class PropertyInquiries(Resource):
     @api.doc('get_property_inquiries')
     @api.response(200, 'Success')
-    @token_required
-    def get(self, current_user, property_id):
+    def get(self, property_id):
         """Get all inquiries for a property"""
         inquiries = Inquiry.query.filter_by(property_id=property_id).all()
         return InquirySchema(many=True).dump(inquiries)
@@ -89,9 +88,7 @@ class PropertyInquiries(Resource):
     @api.doc('create_property_inquiry')
     @api.expect(inquiry_model)
     @api.response(201, 'Inquiry created')
-    @token_required
-    @role_required(['customer'])
-    def post(self, current_user, property_id):
+    def post(self, property_id):
         """Create a new inquiry for a property (Customer only)"""
         data = request.get_json()
         inquiry = Inquiry(
@@ -116,8 +113,7 @@ class PropertyLikes(Resource):
     @api.expect(like_model)
     @api.response(201, 'Like created')
     @api.response(400, 'Already liked')
-    @token_required
-    def post(self, current_user, property_id):
+    def post(self, property_id):
         """Add a like to a property"""
         existing_like = Like.query.filter_by(
             property_id=property_id,
@@ -147,8 +143,7 @@ class PropertyComments(Resource):
     @api.doc('create_property_comment')
     @api.expect(comment_model)
     @api.response(201, 'Comment created')
-    @token_required
-    def post(self, current_user, property_id):
+    def post(self, property_id):
         """Add a comment to a property"""
         data = request.get_json()
         comment = Comment(

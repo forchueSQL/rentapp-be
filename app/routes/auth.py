@@ -7,6 +7,32 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 from datetime import datetime, timedelta
 from flask import current_app
+from functools import wraps
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = request.headers.get('Authorization')
+        if not token:
+            return f(None, *args, **kwargs)  # Allow access without token
+        try:
+            token = token.split()[1]  # Remove 'Bearer ' prefix
+            data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
+            current_user = User.query.get(data['user_id'])
+            return f(current_user, *args, **kwargs)
+        except:
+            return f(None, *args, **kwargs)  # Allow access if token is invalid
+    return decorated
+
+def role_required(roles):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(current_user, *args, **kwargs):
+            if not current_user or current_user.role not in roles:
+                return {'message': 'Unauthorized access'}, 403
+            return f(current_user, *args, **kwargs)
+        return decorated_function
+    return decorator
 
 auth_bp = Blueprint('auth', __name__)
 api = Api(auth_bp, 
