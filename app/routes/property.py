@@ -1,8 +1,11 @@
 from flask import Blueprint, request
 from flask_restx import Api, Resource, fields
 from app import db
-from app.models.models import Property, Inquiry, Like, Comment
-from app.schemas.schemas import PropertySchema, InquirySchema, LikeSchema, CommentSchema
+from app.models.models import Property, PropertyPhoto, PropertyStatus, Inquiry, Like, Comment
+from app.schemas.schemas import (
+    PropertySchema, PropertyPhotoSchema, PropertyStatusSchema,
+    InquirySchema, LikeSchema, CommentSchema
+)
 from app.routes.auth import token_required, role_required
 
 property_bp = Blueprint('property', __name__)
