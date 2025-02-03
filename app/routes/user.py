@@ -14,30 +14,46 @@ api = Api(user_bp,
 
 # API Models for documentation
 user_model = api.model('User', {
-    'username': fields.String(description='Username'),
-    'email': fields.String(description='Email address'),
-    'phone_number': fields.String(description='Phone number'),
-    'role': fields.String(description='User role')
+    'id': fields.Integer(description='User ID', readonly=True),
+    'username': fields.String(description='Username (3-50 characters)', min_length=3, max_length=50),
+    'email': fields.String(description='Email address', pattern=r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'),
+    'phone_number': fields.String(description='Phone number (digits only, max 15)', max_length=15),
+    'role': fields.String(description='User role', enum=['admin', 'broker', 'customer']),
+    'created_at': fields.DateTime(description='Account creation date', readonly=True)
+})
+
+user_list_model = api.model('UserList', {
+    'users': fields.List(fields.Nested(user_model))
 })
 
 @api.route('/users')
 class Users(Resource):
-    @api.doc('list_users')
-    @api.response(200, 'Success')
+    @api.doc('list_users',
+             description='List all users (Admin only)',
+             security='Bearer Auth',
+             responses={
+                 200: ('Success', user_list_model),
+                 403: ('Forbidden - Admin access required', error_model)
+             })
     @token_required
     @role_required(['admin'])
     def get(self, current_user):
-        """Get all users (Admin only)"""
         users = User.query.all()
         return UserSchema(many=True, exclude=['password_hash']).dump(users)
 
-    @api.doc('create_user')
+    @api.doc('create_user',
+             description='Create a new user account (Admin only)',
+             security='Bearer Auth',
+             responses={
+                 201: ('User created', user_model),
+                 400: ('Validation error', error_model),
+                 403: ('Forbidden - Admin access required', error_model),
+                 409: ('Conflict - email/username already exists', error_model)
+             })
     @api.expect(user_model)
-    @api.response(201, 'User created')
     @token_required
     @role_required(['admin'])
     def post(self, current_user):
-        """Create a new user (Admin only)"""
         data = request.get_json()
         if User.query.filter_by(email=data['email']).first():
             return {'message': 'Email already registered'}, 400
