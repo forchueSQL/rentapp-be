@@ -1,4 +1,13 @@
-@api.route('/<int:property_id>/inquiries')
+from flask import Blueprint, request
+from flask_restx import Api, Resource
+from app import db
+from app.models.models import Inquiry, Like, Comment
+from app.schemas.schemas import InquirySchema, LikeSchema, CommentSchema
+
+property_bp = Blueprint('property', __name__)
+api = Api(property_bp)
+
+@api.route('/properties/<int:property_id>/inquiries')
 class PropertyInquiries(Resource):
     def get(self, property_id):
         """Get all inquiries for a property"""
@@ -17,7 +26,7 @@ class PropertyInquiries(Resource):
         db.session.commit()
         return InquirySchema().dump(inquiry), 201
 
-@api.route('/<int:property_id>/likes')
+@api.route('/properties/<int:property_id>/likes')
 class PropertyLikes(Resource):
     def get(self, property_id):
         """Get all likes for a property"""
@@ -35,7 +44,7 @@ class PropertyLikes(Resource):
         db.session.commit()
         return LikeSchema().dump(like), 201
 
-@api.route('/<int:property_id>/comments')
+@api.route('/properties/<int:property_id>/comments')
 class PropertyComments(Resource):
     def get(self, property_id):
         """Get all comments for a property"""
