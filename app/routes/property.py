@@ -93,7 +93,7 @@ class PropertyInquiries(Resource):
         data = request.get_json()
         inquiry = Inquiry(
             property_id=property_id,
-            customer_id=current_user.id,
+            customer_id=data['customer_id'],
             message=data['message']
         )
         db.session.add(inquiry)
@@ -115,9 +115,10 @@ class PropertyLikes(Resource):
     @api.response(400, 'Already liked')
     def post(self, property_id):
         """Add a like to a property"""
+        data = request.get_json()
         existing_like = Like.query.filter_by(
             property_id=property_id,
-            user_id=current_user.id
+            user_id=data['user_id']
         ).first()
         
         if existing_like:
@@ -125,7 +126,7 @@ class PropertyLikes(Resource):
             
         like = Like(
             property_id=property_id,
-            user_id=current_user.id
+            user_id=data['user_id']
         )
         db.session.add(like)
         db.session.commit()
@@ -148,7 +149,7 @@ class PropertyComments(Resource):
         data = request.get_json()
         comment = Comment(
             property_id=property_id,
-            user_id=current_user.id,
+            user_id=data['user_id'],
             content=data['content']
         )
         db.session.add(comment)
