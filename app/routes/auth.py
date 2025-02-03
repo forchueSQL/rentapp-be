@@ -42,6 +42,15 @@ api = Api(auth_bp,
 )
 
 # API Models for documentation
+user_model = api.model('User', {
+    'id': fields.Integer(description='User ID', readonly=True, example=1),
+    'username': fields.String(required=True, description='Username (3-50 characters)', min_length=3, max_length=50, example='john_doe'),
+    'email': fields.String(required=True, description='Email address', pattern=r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', example='john@example.com'),
+    'phone_number': fields.String(description='Phone number (digits only, max 15)', max_length=15, example='1234567890'),
+    'role': fields.String(required=True, description='User role', enum=['admin', 'broker', 'customer'], example='customer'),
+    'created_at': fields.DateTime(description='Account creation date', readonly=True, example='2025-01-01T00:00:00Z')
+})
+
 register_model = api.model('Register', {
     'username': fields.String(required=True, description='Username (3-50 characters)', min_length=3, max_length=50),
     'email': fields.String(required=True, description='Valid email address', pattern=r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'),
